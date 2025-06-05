@@ -46,7 +46,6 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
 
   useEffect(() => {
     amountInputRef.current?.focus();
-    // Fetch initial rate
     if (fromCurrency && toCurrency) {
       fetchExchangeRate(fromCurrency, toCurrency);
     }
@@ -105,12 +104,9 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
   };
-
   const resetForm = (): void => {
     setAmount("");
     setResult(null);
-    setRate(null);
-    setTimestamp(null);
     setError(null);
   };
 
