@@ -12,10 +12,32 @@ import {
   FaHistory,
 } from "react-icons/fa";
 
-const HamburgerMenu = ({ isDark, toggleMenu, isOpen }) => {
+interface HamburgerMenuProps {
+  isDark: boolean;
+  toggleMenu: () => void;
+  isOpen: boolean;
+}
+
+type MenuItemType =
+  | "calculator"
+  | "currency"
+  | "weight"
+  | "length"
+  | "volume"
+  | "area"
+  | "bmi"
+  | "loan"
+  | "percentage"
+  | "history";
+
+const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
+  isDark,
+  toggleMenu,
+  isOpen,
+}) => {
   const location = useLocation();
 
-  const getIcon = (type) => {
+  const getIcon = (type: MenuItemType) => {
     switch (type) {
       case "calculator":
         return <FaCalculator />;

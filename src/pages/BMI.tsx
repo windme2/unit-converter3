@@ -1,69 +1,144 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaUndo, FaVenus, FaMars } from "react-icons/fa";
 import Header from "../components/Header";
 
-const BMIInfographic = ({ bmi, isDark }) => {
-  const getGradientBar = () => {
-    const bmiPosition = Math.min(Math.max(bmi, 15), 35); // Limit BMI range 15-35 for display
-    const positionPercent = ((bmiPosition - 15) / 20) * 100; // Map to 0-100%
+interface BMIInfographicProps {
+  bmi: number;
+  isDark: boolean;
+}
 
-    return (
-      <div className="relative w-full h-4 bg-gray-200 rounded-full">
-        <svg width="100%" height="16">
-          <defs>
-            <linearGradient id="bmiGradient">
-              <stop offset="0%" stopColor={isDark ? "#4ade80" : "#22c55e"} />
-              <stop offset="50%" stopColor={isDark ? "#fde047" : "#facc15"} />
-              <stop offset="100%" stopColor={isDark ? "#f87171" : "#ef4444"} />
-            </linearGradient>
-          </defs>
-          <rect width="100%" height="16" fill="url(#bmiGradient)" rx="8" />
-        </svg>
-        <div
-          className="absolute top-0 h-4 w-1 bg-black"
-          style={{ left: `${positionPercent}%` }}
-        />
-        <div
-          className={`flex justify-between text-xs mt-1 ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
-          <span>15</span>
-          <span>25</span>
-          <span>35</span>
+interface BMICalculatorProps {
+  isDark: boolean;
+  toggleDarkMode: () => void;
+}
+
+interface BMIResult {
+  bmi: string;
+  category: string;
+}
+
+const containerVariants = {
+  initial: {
+    opacity: 0,
+    scale: 0.95,
+  },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.25,
+      ease: [0.22, 1, 0.36, 1],
+      staggerChildren: 0.1,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+const childVariants = {
+  initial: {
+    opacity: 0,
+    scale: 0.95,
+  },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.25,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+const BMIInfographic: React.FC<BMIInfographicProps> = ({ bmi, isDark }) => {
+  const getGradientBar = () => {
+    const bmiValue = bmi || 0;
+    const bmiPosition = Math.min(Math.max(bmiValue, 15), 35);
+    const positionPercent = ((bmiPosition - 15) / 20) * 100;
+
+    return (      <div className={`p-4 rounded-lg ${isDark ? "bg-gray-700/50" : "bg-gray-100"}`}>
+        <div className="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+          <svg width="100%" height="16">
+            <defs>
+              <linearGradient id="bmiGradient">
+                <stop offset="0%" stopColor={isDark ? "#4ade80" : "#22c55e"} />
+                <stop offset="50%" stopColor={isDark ? "#fde047" : "#facc15"} />
+                <stop offset="100%" stopColor={isDark ? "#f87171" : "#ef4444"} />
+              </linearGradient>
+            </defs>
+            <rect width="100%" height="16" fill="url(#bmiGradient)" rx="8" />
+          </svg>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute top-0 h-4 w-1 bg-black"
+            style={{ left: `${positionPercent}%` }}
+          />
+          <div
+            className={`flex justify-between text-xs mt-2 px-1 ${
+              isDark ? "text-gray-300" : "text-gray-600"
+            }`}
+          >
+            <span>15</span>
+            <span>25</span>
+            <span>35</span>
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col items-center gap-2 w-full">
-      {bmi !== "0" && getGradientBar()}
-    </div>
+    <motion.div
+      variants={childVariants}
+      className="flex flex-col items-center gap-2 w-full"
+    >
+      {getGradientBar()}
+    </motion.div>
   );
 };
 
-const BMICalculator = ({ isDark, toggleDarkMode }) => {
-  const [height, setHeight] = useState("");
-  const [weight, setWeight] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("male");
-  const [result, setResult] = useState({ bmi: "0", category: "N/A" });
+const BMICalculator: React.FC<BMICalculatorProps> = ({ isDark, toggleDarkMode }) => {
+  const [height, setHeight] = useState<string>("");
+  const [weight, setWeight] = useState<string>("");
+  const [age, setAge] = useState<string>("");
+  const [gender, setGender] = useState<"male" | "female">("male");
+  const [result, setResult] = useState<BMIResult>({ bmi: "0", category: "N/A" });
 
   const calculateBMI = () => {
-    if (!weight || !height || weight <= 0 || height <= 0) {
+    const weightNum = parseFloat(weight);
+    const heightNum = parseFloat(height);
+
+    if (!weightNum || !heightNum || weightNum <= 0 || heightNum <= 0) {
       setResult({ bmi: "0", category: "N/A" });
       return;
     }
 
-    const heightInM = height / 100;
-    const bmi = (weight / (heightInM * heightInM)).toFixed(2);
+    const heightInM = heightNum / 100;
+    const bmi = (weightNum / (heightInM * heightInM)).toFixed(2);
     let category = "";
-    if (bmi < 18.5) category = "Underweight";
-    else if (bmi < 25) category = "Normal";
-    else if (bmi < 30) category = "Overweight";
+
+    const bmiNum = parseFloat(bmi);
+    if (bmiNum < 18.5) category = "Underweight";
+    else if (bmiNum < 25) category = "Normal";
+    else if (bmiNum < 30) category = "Overweight";
     else category = "Obese";
+
     setResult({ bmi, category });
   };
 
@@ -81,15 +156,14 @@ const BMICalculator = ({ isDark, toggleDarkMode }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      variants={containerVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
       className="flex-1 flex flex-col gap-6 max-w-4xl mx-auto p-10"
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+        variants={containerVariants}
         className={`card-container p-6 rounded-lg flex flex-col gap-4 ${
           isDark ? "bg-gray-800" : "bg-white"
         }`}
@@ -100,7 +174,7 @@ const BMICalculator = ({ isDark, toggleDarkMode }) => {
           toggleDarkMode={toggleDarkMode}
           className="mt-4"
         />
-        <div className="flex flex-col gap-3">
+        <motion.div variants={childVariants} className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <label
@@ -189,37 +263,36 @@ const BMICalculator = ({ isDark, toggleDarkMode }) => {
               />
             </div>
           </div>
-        </div>
-        <div
-          className={`mt-6 p-4 rounded-lg shadow-sm ${
-            isDark ? "bg-gray-700" : "bg-gray-100"
-          }`}
-        >
-          <h3
-            className={`text-lg font-semibold mb-3 ${
-              isDark ? "text-white" : "text-black"
+        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={result.bmi}
+            variants={childVariants}
+            className={`mt-6 p-4 rounded-lg shadow-sm ${
+              isDark ? "bg-gray-700" : "bg-gray-100"
             }`}
           >
-            BMI Calculation Result
-          </h3>
-          <div className="flex flex-col gap-2 text-base">
-            <p>
-              <span className={isDark ? "text-white" : "text-black"}>BMI:</span>{" "}
-              <span className={isDark ? "text-teal-200" : "text-teal-700"}>
-                {result.bmi}
-              </span>
-            </p>
-            <p>
-              <span className={isDark ? "text-white" : "text-black"}>
-                Category:
-              </span>{" "}
-              <span className={isDark ? "text-teal-200" : "text-teal-700"}>
-                {result.category}
-              </span>
-            </p>
-            <BMIInfographic bmi={parseFloat(result.bmi)} isDark={isDark} />
-          </div>
-        </div>
+            <h3
+              className={`text-lg font-semibold mb-3 ${
+                isDark ? "text-white" : "text-black"
+              }`}
+            >
+              BMI Calculation Result
+            </h3>            <div className="flex flex-col items-center gap-4 text-base">
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-2">
+                  <span className={isDark ? "text-teal-200" : "text-teal-700"}>
+                    {result.bmi}
+                  </span>
+                </div>
+                <div className={`text-xl font-semibold ${isDark ? "text-white" : "text-black"}`}>
+                  {result.category}
+                </div>
+              </div>
+              <BMIInfographic bmi={parseFloat(result.bmi)} isDark={isDark} />
+            </div>
+          </motion.div>
+        </AnimatePresence>
         <div className="flex justify-end mt-4">
           <motion.button
             whileHover={{ scale: 1.05 }}

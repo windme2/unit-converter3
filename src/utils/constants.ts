@@ -1,4 +1,13 @@
-export const currencyNames = {
+interface LanguageStrings {
+  en: string;
+  th: string;
+}
+
+interface CurrencyNames {
+  [key: string]: LanguageStrings;
+}
+
+export const currencyNames: CurrencyNames = {
   USD: { en: "United States Dollar", th: "ดอลลาร์สหรัฐ" },
   THB: { en: "Thai Baht", th: "บาทไทย" },
   EUR: { en: "Euro", th: "ยูโร" },

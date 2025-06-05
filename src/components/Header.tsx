@@ -2,7 +2,14 @@ import { FaHome, FaBars, FaMoon, FaSun } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const Header = ({ title, isDark, toggleDarkMode, className }) => {
+interface HeaderProps {
+  title: string;
+  isDark: boolean;
+  toggleDarkMode: () => void;
+  className?: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ title, isDark, toggleDarkMode, className }) => {
   const navigate = useNavigate();
 
   return (

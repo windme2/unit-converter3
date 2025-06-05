@@ -9,141 +9,98 @@ import { currencyNames } from "../utils/constants";
 import { formatNumber, getCurrentTimestamp } from "../utils/helpers";
 import Header from "../components/Header";
 
-const CurrencyConverter = ({ isDark, toggleDarkMode }) => {
-  const [amount, setAmount] = useState("");
-  const [fromCurrency, setFromCurrency] = useLocalStorage(
-    "fromCurrency",
-    "USD"
-  );
-  const [toCurrency, setToCurrency] = useLocalStorage("toCurrency", "THB");
-  const [result, setResult] = useState(null);
-  const [rate, setRate] = useState(null);
-  const [timestamp, setTimestamp] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [currencies] = useState(Object.keys(currencyNames));
-  const [favorites, setFavorites] = useLocalStorage("favorites", [
-    { from: "THB", to: "USD", pinned: false },
-    { from: "USD", to: "THB", pinned: false },
-  ]);
-  const amountInputRef = useRef(null);
+interface CurrencyConverterProps {
+  isDark: boolean;
+  toggleDarkMode: () => void;
+}
+
+interface ConversionHistoryItem {
+  id: string;
+  fromCurrency: string;
+  toCurrency: string;
+  amount: string;
+  result: number;
+  timestamp: string;
+}
+
+interface CurrencyPair {
+  from: string;
+  to: string;
+  pinned?: boolean;
+}
+
+const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
+  isDark,
+  toggleDarkMode,
+}) => {
+  const [amount, setAmount] = useState<string>("");
+  const [fromCurrency, setFromCurrency] = useLocalStorage<string>("fromCurrency", "USD");
+  const [toCurrency, setToCurrency] = useLocalStorage<string>("toCurrency", "THB");
+  const [result, setResult] = useState<number | null>(null);
+  const [rate, setRate] = useState<number | null>(null);
+  const [timestamp, setTimestamp] = useState<string | null>(null);
+  const [favorites, setFavorites] = useLocalStorage<CurrencyPair[]>("favoritePairs", []);
+  const [error, setError] = useState<string | null>(null);
+  const currencies = Object.keys(currencyNames);
+  const amountInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     amountInputRef.current?.focus();
   }, []);
 
-  const fetchRate = useCallback(() => {
-    if (!fromCurrency || !toCurrency) {
-      setRate(null);
-      setTimestamp(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    axios
-      .get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`)
-      .then((response) => {
-        if (!response.data.rates[toCurrency]) {
-          setError("Currency pair not supported");
-          setLoading(false);
-          toast.error("Currency pair not supported", { duration: 3000 });
-          return;
-        }
-        const rate = response.data.rates[toCurrency];
-        setRate(rate.toFixed(4));
-        setTimestamp(getCurrentTimestamp());
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(
-          "Failed to fetch exchange rate. Please check your internet connection."
-        );
-        setLoading(false);
-        toast.error("Failed to fetch exchange rate", { duration: 3000 });
-        console.error("API fetch error:", err);
-      });
-  }, [fromCurrency, toCurrency]);
-
-  const convert = useCallback(() => {
-    if (!amount || amount <= 0 || !fromCurrency || !toCurrency) {
+  const fetchExchangeRate = async (from: string, to: string): Promise<void> => {
+    if (!amount || parseFloat(amount) <= 0 || !from || !to) {
       setResult(null);
-      if (!amount) fetchRate();
       return;
     }
-    setLoading(true);
-    setError(null);
-    axios
-      .get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`)
-      .then((response) => {
-        if (!response.data.rates[toCurrency]) {
-          setError("Currency pair not supported");
-          setLoading(false);
-          toast.error("Currency pair not supported", { duration: 3000 });
-          return;
-        }
-        const rate = response.data.rates[toCurrency];
-        const converted = (amount * rate).toFixed(2);
-        setResult(converted);
-        setRate(rate.toFixed(4));
-        setTimestamp(getCurrentTimestamp());
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError("Conversion failed. Please try again later.");
-        setLoading(false);
-        toast.error("Conversion failed", { duration: 3000 });
-        console.error("Conversion error:", err);
-      });
-  }, [amount, fromCurrency, toCurrency, fetchRate]);
 
-  const debouncedConvert = useCallback(debounce(convert, 500), [convert]);
-  const debouncedFetchRate = useCallback(debounce(fetchRate, 500), [fetchRate]);
+    try {
+      const response = await axios.get(`API_URL_HERE?from=${from}&to=${to}`);
+      const currentRate = response.data.rate;
+      setRate(currentRate);
+      const converted = (parseFloat(amount) * currentRate);
+      setResult(converted);
+      setTimestamp(getCurrentTimestamp());
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching exchange rate:", error);
+      setError("Failed to fetch exchange rate");
+      toast.error("Failed to fetch exchange rate");
+    }
+  };
+
+  const debouncedFetch = useCallback(
+    debounce((from: string, to: string) => fetchExchangeRate(from, to), 500),
+    []
+  );
 
   useEffect(() => {
-    debouncedFetchRate();
-    return () => debouncedFetchRate.cancel();
-  }, [fromCurrency, toCurrency, debouncedFetchRate]);
+    debouncedFetch(fromCurrency, toCurrency);
+  }, [amount, fromCurrency, toCurrency, debouncedFetch]);
 
-  useEffect(() => {
-    debouncedConvert();
-    return () => debouncedConvert.cancel();
-  }, [amount, fromCurrency, toCurrency, debouncedConvert]);
-
-  const swapCurrencies = () => {
+  const swapCurrencies = (): void => {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
-    toast("Currencies swapped!", { duration: 1500 });
   };
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setAmount("");
     setResult(null);
-    fetchRate();
-    toast.success("Form reset!", { duration: 1500 });
+    setRate(null);
+    setTimestamp(null);
+    setError(null);
   };
 
-  const addFavorite = (pair) => {
-    if (
-      !favorites.some((fav) => fav.from === pair.from && fav.to === pair.to) &&
-      favorites.length < 4
-    ) {
+  const addFavorite = (pair: CurrencyPair): void => {
+    if (!favorites.some(fav => fav.from === pair.from && fav.to === pair.to)) {
       setFavorites([...favorites, { ...pair, pinned: false }]);
-      toast.success(`${pair.from} > ${pair.to} added!`, { duration: 1500 });
-    } else {
-      toast.error("Already exists or limit reached (max 4)", {
-        duration: 1500,
-      });
+      toast.success(`Added ${pair.from} > ${pair.to} to favorites!`);
     }
   };
 
-  const clearFavorites = () => {
-    setFavorites([]);
-    toast.success("Favorites cleared!", { duration: 1500 });
-  };
-
-  const pinFavorite = (pair) => {
+  const pinFavorite = (pair: CurrencyPair): void => {
     setFavorites(
-      favorites.map((fav) =>
+      favorites.map(fav =>
         fav.from === pair.from && fav.to === pair.to
           ? { ...fav, pinned: !fav.pinned }
           : fav
@@ -155,6 +112,11 @@ const CurrencyConverter = ({ isDark, toggleDarkMode }) => {
     );
   };
 
+  const clearFavorites = (): void => {
+    setFavorites([]);
+    toast.success("Favorites cleared!");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -162,24 +124,6 @@ const CurrencyConverter = ({ isDark, toggleDarkMode }) => {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="flex-1 flex flex-col gap-6 max-w-4xl mx-auto p-10"
     >
-      {loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute inset-0 flex items-center justify-center bg-opacity-50 rounded-lg z-10"
-          style={{
-            backgroundColor: isDark
-              ? "rgba(0, 0, 0, 0.5)"
-              : "rgba(255, 255, 255, 0.5)",
-          }}
-        >
-          <div
-            className="spinner h-6 w-6 border-2 border-t-transparent rounded-full"
-            style={{ borderColor: isDark ? "#60a5fa" : "#3b82f6" }}
-          ></div>
-        </motion.div>
-      )}
-
       {error && (
         <motion.p
           initial={{ opacity: 0 }}
