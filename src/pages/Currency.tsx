@@ -39,33 +39,51 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
   const [result, setResult] = useState<number | null>(null);
   const [rate, setRate] = useState<number | null>(null);
   const [timestamp, setTimestamp] = useState<string | null>(null);
-  const [favorites, setFavorites] = useLocalStorage<CurrencyPair[]>("favoritePairs", []);
-  const [error, setError] = useState<string | null>(null);
+  const [favorites, setFavorites] = useLocalStorage<CurrencyPair[]>("favoritePairs", []);  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const currencies = Object.keys(currencyNames);
   const amountInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     amountInputRef.current?.focus();
-  }, []);
+    // Fetch initial rate
+    if (fromCurrency && toCurrency) {
+      fetchExchangeRate(fromCurrency, toCurrency);
+    }
+  }, []);  const calculateResult = (currentRate: number, currentAmount: string) => {
+    if (currentAmount && parseFloat(currentAmount) > 0) {
+      const converted = parseFloat(currentAmount) * currentRate;
+      setResult(converted);
+    } else {
+      setResult(null);
+    }
+  };
 
   const fetchExchangeRate = async (from: string, to: string): Promise<void> => {
-    if (!amount || parseFloat(amount) <= 0 || !from || !to) {
+    if (!from || !to) {
       setResult(null);
       return;
     }
 
     try {
-      const response = await axios.get(`API_URL_HERE?from=${from}&to=${to}`);
-      const currentRate = response.data.rate;
+      setIsLoading(true);
+      const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${from}`);
+      const currentRate = response.data.rates[to];
+      if (!currentRate) {
+        throw new Error("Rate not found");
+      }
       setRate(currentRate);
-      const converted = (parseFloat(amount) * currentRate);
-      setResult(converted);
+      calculateResult(currentRate, amount);
       setTimestamp(getCurrentTimestamp());
       setError(null);
     } catch (error) {
       console.error("Error fetching exchange rate:", error);
       setError("Failed to fetch exchange rate");
       toast.error("Failed to fetch exchange rate");
+      setRate(null);
+      setResult(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,10 +91,15 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
     debounce((from: string, to: string) => fetchExchangeRate(from, to), 500),
     []
   );
+  useEffect(() => {
+    if (rate) {
+      calculateResult(rate, amount);
+    }
+  }, [amount, rate]);
 
   useEffect(() => {
     debouncedFetch(fromCurrency, toCurrency);
-  }, [amount, fromCurrency, toCurrency, debouncedFetch]);
+  }, [fromCurrency, toCurrency, debouncedFetch]);
 
   const swapCurrencies = (): void => {
     setFromCurrency(toCurrency);
@@ -133,16 +156,19 @@ const CurrencyConverter: React.FC<CurrencyConverterProps> = ({
         >
           {error}
         </motion.p>
-      )}
-
-      <motion.div
+      )}      <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-        className={`card-container p-6 rounded-lg flex flex-col gap-4 ${
+        className={`card-container p-6 rounded-lg flex flex-col gap-4 relative ${
           isDark ? "bg-gray-800" : "bg-white"
         }`}
       >
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg z-10">
+            <div className="spinner"></div>
+          </div>
+        )}
         <Header
           title="Currency Converter"
           isDark={isDark}

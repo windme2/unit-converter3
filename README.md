@@ -5,7 +5,7 @@
 
 ## 🛠️ Tech Stack
 
-- Frontend Framework: React with TypeScript
+- Frontend Framework: React
 - Build Tool: Vite
 - Styling: TailwindCSS
 - Animations: Framer Motion
@@ -45,7 +45,7 @@ unit-converter/
 - 💰 Loan Interest Calculator
 - 📊 Percentage Calculator
 - 💪 BMI Calculator with Visual Indicator
-- 💵 Tax Calculator (Thai Tax System)
+- 💵 Tax Calculator
 
 ### Additional Features
 
@@ -62,7 +62,7 @@ unit-converter/
 ## 🚀 Getting Started
 ### Clone the repository
 ```bash
-git clone https://github.com/intouchxs/unit-converter.git
+git clone https://github.com/windme2/unit-converter.git
 ```
 
 ### Navigate to project directory
