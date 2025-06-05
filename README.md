@@ -1,11 +1,11 @@
 # 🧮 Unit Converter
 
 ## 📖 Overview
- A comprehensive unit conversion application built with React, Vite, and TailwindCSS. This application provides various conversion tools and calculators with a beautiful, responsive UI and dark mode support.
+ A comprehensive unit conversion application built with React, TypeScript, Vite, and TailwindCSS. This application provides various conversion tools and calculators with a beautiful, responsive UI and dark mode support.
 
 ## 🛠️ Tech Stack
 
-- Frontend Framework: React
+- Frontend Framework: React with TypeScript
 - Build Tool: Vite
 - Styling: TailwindCSS
 - Animations: Framer Motion
@@ -20,13 +20,14 @@
 ```
 unit-converter/
 ├── src/
-│   ├── components/     # Reusable UI components
-│   ├── hooks/         # Custom React hooks
-│   ├── pages/         # Page components
-│   ├── utils/         # Helper functions & constants
-│   ├── App.jsx        # Main application component
-│   └── main.jsx       # Application entry point
+│   ├── components/     # Reusable UI components (.tsx)
+│   ├── hooks/         # Custom React hooks (.ts)
+│   ├── pages/         # Page components (.tsx)
+│   ├── utils/         # Helper functions & constants (.ts)
+│   ├── App.tsx        # Main application component
+│   └── main.tsx       # Application entry point
 ├── public/            # Static assets
+│   └── calculator-icon.svg  # Application favicon
 └── ...config files
 ```
 
@@ -43,23 +44,25 @@ unit-converter/
 - 🧮 Basic Calculator
 - 💰 Loan Interest Calculator
 - 📊 Percentage Calculator
-- 💪 BMI Calculator
-- 💵 Tax Calculator
+- 💪 BMI Calculator with Visual Indicator
+- 💵 Tax Calculator (Thai Tax System)
 
 ### Additional Features
 
-- 🌓 Dark/Light Mode Toggle
+- 🌓 Dark/Light Mode Toggle with Smooth Transitions
 - 📱 Responsive Design
-- 🎨 Beautiful UI with animations
+- 🎨 Beautiful UI with Spring Animations
 - 📖 Conversion History
 - ⭐ Favorite Currency Pairs
+- 🔄 Smooth State Transitions
+- 🎯 Type-Safe Development
 
 ---
 
 ## 🚀 Getting Started
 ### Clone the repository
 ```bash
-git clone https://github.com/windme2/unit-converter.git
+git clone https://github.com/intouchxs/unit-converter.git
 ```
 
 ### Navigate to project directory
@@ -86,10 +89,11 @@ The application uses several configuration files to maintain its functionality a
 
 | File | Description |
 |------|-------------|
-| `vite.config.js` | ⚡ Vite bundler configuration for build optimization |
+| `vite.config.ts` | ⚡ Vite bundler configuration with TypeScript support |
 | `tailwind.config.js` | 🎨 TailwindCSS settings for custom styling |
 | `eslint.config.js` | 🔍 ESLint rules for code quality standards |
 | `postcss.config.js` | 🎯 PostCSS plugins for CSS processing |
+| `tsconfig.json` | 📝 TypeScript configuration |
 
 
 ## 🤝 Contributing
