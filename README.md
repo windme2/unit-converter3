@@ -5,25 +5,25 @@
 
 ## 🛠️ Tech Stack
 
-- Frontend Framework: React
-- Build Tool: Vite
-- Styling: TailwindCSS
-- Animations: Framer Motion
-- State Management: React Hooks + Context
-- Data Persistence: LocalStorage
-- HTTP Client: Axios
-- Routing: React Router
-- Notifications: React Hot Toast
-- Icons: React Icons
+- **Frontend Framework: React**
+- **Build Tool: Vite**
+- **Styling: TailwindCSS**
+- **Animations: Framer Motion**
+- **State Management: React Hooks + Context**
+- **Data Persistence: LocalStorage**
+- **HTTP Client: Axios**
+- **Routing: React Router**
+- **Notifications: React Hot Toast**
+- **Icons: React Icons**
 
 ## 📁 Project Structure
 ```
 unit-converter/
 ├── src/
-│   ├── components/     # Reusable UI components (.tsx)
-│   ├── hooks/         # Custom React hooks (.ts)
-│   ├── pages/         # Page components (.tsx)
-│   ├── utils/         # Helper functions & constants (.ts)
+│   ├── components/     # Reusable UI components
+│   ├── hooks/         # Custom React hooks
+│   ├── pages/         # Page components
+│   ├── utils/         # Helper functions & constants
 │   ├── App.tsx        # Main application component
 │   └── main.tsx       # Application entry point
 ├── public/            # Static assets
